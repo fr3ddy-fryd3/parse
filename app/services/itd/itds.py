@@ -1,6 +1,8 @@
 import requests
+from app.utils.to_data_frame import dataframe
 
 
+@dataframe
 def get_itd_sets(
     session: requests.Session, access_token: str, project_id: str, **kwargs
 ) -> dict | None:

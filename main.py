@@ -1,28 +1,12 @@
 import requests
+import pandas
 from app.utils.auth import get_token
 from app.services.project import get_filtered_projects
-from app.services.user import get_current_user
-from app.services.build_control.documents import get_project_documents
+from app.services.itd.general_journal import get_general_journal_info
 
-try:
-    session = requests.Session()
-
-    # Ваш действительный access token
+with requests.Session() as session:
     token = get_token(session)
-
-    # Вызов функции с фильтрами
-    projects = get_filtered_projects(session=session, access_token=token)
-
-    print("Успешно получены проекты:")
-    print(projects)
-
-    user = get_current_user(session, token)
-    if user:
-        print(
-            get_project_documents(
-                session, token, "655f142e5b102a26e732bfc4", user["id"]
-            )
-        )
-
-except Exception as e:
-    print(f"Ошибка при получении проектов: {e}")
+    project = get_filtered_projects(session=session, access_token=token)
+    data = get_general_journal_info(session, token, project.loc[0]["id"])
+    data = data.sort_values("userId")
+    data.to_excel("result.xlsx")

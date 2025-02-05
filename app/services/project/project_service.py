@@ -1,6 +1,9 @@
+import pandas
 import requests
+from app.utils.to_data_frame import dataframe
 
 
+@dataframe
 def get_filtered_projects(
     session: requests.Session,  # Принимаем сессию с куками
     access_token: str,
@@ -11,7 +14,7 @@ def get_filtered_projects(
     status: str | None = None,
     base_url: str = "https://exv.portal.alabuga.ru",
     timeout: float = 10.0,
-) -> dict:
+) -> pandas.DataFrame:
     """
     Улучшенная версия с поддержкой сессии и кук
 

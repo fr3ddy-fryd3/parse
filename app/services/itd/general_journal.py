@@ -1,13 +1,16 @@
+import pandas
 import requests
+from app.utils.to_data_frame import dataframe
 
 
+@dataframe
 def get_general_journal_info(
     session: requests.Session,
     access_token: str,
     project_id: str,
     is_actual: bool = True,
     **kwargs,
-) -> dict | None:
+) -> pandas.DataFrame | None:
     """
     Получает общую информацию по журналу проекта
 
