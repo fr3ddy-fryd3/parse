@@ -66,10 +66,10 @@ def load_tokens(filepath: str) -> dict | None:
 
 
 # Генерируем PKCE параметры
-def get_token(session: requests.Session) -> dict:
+def get_token(session: requests.Session) -> str:
     if Config.TOKEN_FILE and (tokens := load_tokens(Config.TOKEN_FILE)):
         print("Используем сохраненные токены")
-        return tokens
+        return tokens["access_token"]
     code_verifier = generate_code_verifier()
     code_challenge = generate_code_challenge(code_verifier)
 
@@ -215,4 +215,4 @@ def get_token(session: requests.Session) -> dict:
     if Config.TOKEN_FILE:
         save_tokens(Config.TOKEN_FILE, token_data)
 
-    return token_data
+    return token_data["access_token"]
