@@ -1,20 +1,18 @@
 import requests
 
 
-def get_project_remarks(
+def get_current_user(
     session: requests.Session,
     access_token: str,
-    project_id: str,
 ) -> dict | None:
     """
-    Получает замечания проекта.
+    Получает данные текущего пользователя.
 
     :param session: Сессия requests
     :param access_token: Токен авторизации
-    :param project_id: ID проекта
     :return: JSON-ответ или None при ошибке
     """
-    url = f"https://exv.portal.alabuga.ru/api/sk-service/v2/remarks?projectId={project_id}"
+    url = "https://exv.portal.alabuga.ru/api/users-service/users/current"
 
     headers = {
         "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:134.0) Gecko/20100101 Firefox/134.0",
@@ -28,7 +26,7 @@ def get_project_remarks(
         "Authorization": f"Bearer {access_token}",
         "Pragma": "no-cache",
         "Cache-Control": "no-cache",
-        "Referer": f"https://exv.portal.alabuga.ru/projects/{project_id}/buildControl/remarks",
+        "Referer": "https://exv.portal.alabuga.ru/",
     }
 
     response = session.get(url, headers=headers)
