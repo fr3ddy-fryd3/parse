@@ -1,1 +1,1 @@
-from .project_service import get_filtered_projects
+from .get_projects import get_filtered_projects
