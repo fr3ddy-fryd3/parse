@@ -1,5 +1,6 @@
+import pandas as pd
 import requests
-from app.utils.to_data_frame import dataframe
+from app.utils import dataframe
 
 
 @dataframe
@@ -7,7 +8,7 @@ def get_project_materials(
     session: requests.Session,
     access_token: str,
     project_id: str,
-) -> dict | None:
+) -> pd.DataFrame:
     """
     Получает минимальную информацию о материалах проекта.
 

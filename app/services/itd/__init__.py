@@ -1,4 +1,4 @@
-from .executive_shemas import get_executive_scheme_info
+from .executive_schemas import get_executive_scheme_info
 from .general_journal import (
     _get_general_journal_all,
     _get_materials_info,

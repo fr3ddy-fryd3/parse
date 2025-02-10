@@ -1,5 +1,6 @@
 import requests
-from app.utils.to_data_frame import dataframe
+import pandas as pd
+from app.utils import dataframe
 
 
 @dataframe
@@ -7,7 +8,7 @@ def get_project_inspections(
     session: requests.Session,
     access_token: str,
     project_id: str,
-) -> dict | None:
+) -> pd.DataFrame:
     """
     Получает информацию о проверках проекта.
 

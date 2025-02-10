@@ -1,5 +1,6 @@
 import requests
-from app.utils.to_data_frame import dataframe
+import pandas as pd
+from app.utils import dataframe
 
 
 @dataframe
@@ -8,7 +9,7 @@ def get_executive_scheme_info(
     access_token: str,
     project_id: str,
     **kwargs,
-) -> dict | None:
+) -> pd.DataFrame:
     """
     Получает минимальную информацию по исполнительной схеме проекта
 
@@ -51,4 +52,4 @@ def get_executive_scheme_info(
 
     if response.status_code == 200:
         return response.json()
-    return None
+    return pd.DataFrame()

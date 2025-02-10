@@ -13,20 +13,20 @@ import requests
 from config import Config
 
 
-def generate_code_verifier():
+def _generate_code_verifier():
     """Генерация code_verifier для PKCE по RFC 7636"""
     token = secrets.token_urlsafe(96)
     return token[:128]  # Ограничение длины для некоторых реализаций OAuth
 
 
-def generate_code_challenge(verifier):
+def _generate_code_challenge(verifier):
     """Генерация code_challenge методом S256"""
     digest = hashlib.sha256(verifier.encode("utf-8")).digest()
     challenge = base64.urlsafe_b64encode(digest).rstrip(b"=")
     return challenge.decode("utf-8")
 
 
-def save_tokens(filepath: str, token_data: dict) -> None:
+def _save_tokens(filepath: str, token_data: dict) -> None:
     """Сохраняет токены в файл с расчетом времени истечения"""
     token_data = token_data.copy()
     # Добавляем абсолютное время истечения
@@ -38,7 +38,7 @@ def save_tokens(filepath: str, token_data: dict) -> None:
         json.dump(token_data, f, indent=2)
 
 
-def load_tokens(filepath: str) -> dict | None:
+def _load_tokens(filepath: str) -> dict | None:
     """Загружает токены из файла и проверяет срок их действия"""
     if not os.path.exists(filepath):
         return None
@@ -67,11 +67,11 @@ def load_tokens(filepath: str) -> dict | None:
 
 # Генерируем PKCE параметры
 def get_token(session: requests.Session) -> str:
-    if Config.TOKEN_FILE and (tokens := load_tokens(Config.TOKEN_FILE)):
+    if Config.TOKEN_FILE and (tokens := _load_tokens(Config.TOKEN_FILE)):
         print("Используем сохраненные токены")
         return tokens["access_token"]
-    code_verifier = generate_code_verifier()
-    code_challenge = generate_code_challenge(code_verifier)
+    code_verifier = _generate_code_verifier()
+    code_challenge = _generate_code_challenge(code_verifier)
 
     # Первый шаг: получение loginAction URL
     url = "https://exv.portal.alabuga.ru/auth/realms/SpringBoot/protocol/openid-connect/auth"
@@ -213,6 +213,6 @@ def get_token(session: requests.Session) -> str:
     }
 
     if Config.TOKEN_FILE:
-        save_tokens(Config.TOKEN_FILE, token_data)
+        _save_tokens(Config.TOKEN_FILE, token_data)
 
     return token_data["access_token"]

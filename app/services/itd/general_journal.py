@@ -2,16 +2,17 @@ import pandas
 import requests
 
 from app.services.build_control import documents
-from app.utils.to_data_frame import dataframe
+from app.utils import dataframe
 
 
+@dataframe
 def _get_general_journal_all(
     session: requests.Session,
     access_token: str,
     project_id: str,
     is_actual: bool = True,
     **kwargs,
-) -> dict | None:
+) -> pandas.DataFrame:
     """
     Получает общую информацию по журналу проекта
 
@@ -54,9 +55,10 @@ def _get_general_journal_all(
     return None
 
 
+@dataframe
 def _get_materials_info(
     session: requests.Session, access_token: str, project_id: str
-) -> dict | None:
+) -> pandas.DataFrame:
     """
     Получает информацию о материалах проекта.
 
@@ -79,13 +81,14 @@ def _get_materials_info(
     response = session.get(url, headers=headers)
 
     if response.status_code == 200:
-        return response.json()["materials"]
+        return response.json()
     return None
 
 
+@dataframe
 def _get_documents_info(
     session: requests.Session, access_token: str, project_id: str
-) -> dict | None:
+) -> pandas.DataFrame:
     """
     Получает информацию о документах проекта.
 
@@ -117,9 +120,10 @@ def _get_documents_info(
     return None
 
 
+@dataframe
 def _get_unit_measures(
     session: requests.Session, access_token: str, project_id: str
-) -> dict | None:
+) -> pandas.DataFrame:
     """
     Получает информацию о единицах измерения для проекта.
 
@@ -151,9 +155,10 @@ def _get_unit_measures(
     return None
 
 
+@dataframe
 def _get_work_types(
     session: requests.Session, access_token: str, project_id: str
-) -> dict | None:
+) -> pandas.DataFrame:
     """
     Получает информацию о типах работ проекта.
 
@@ -187,7 +192,7 @@ def _get_work_types(
 
 
 @dataframe
-def ger_general_journal(
+def get_general_journal(
     session: requests.Session, access_token: str, project_id: str
 ) -> pandas.DataFrame:
     general_journal = _get_general_journal_all(session, access_token, project_id)
@@ -195,3 +200,5 @@ def ger_general_journal(
     unit = _get_unit_measures(session, access_token, project_id)
     document = _get_documents_info(session, access_token, project_id)
     work_types = _get_work_types(session, access_token, project_id)
+
+    return pandas.DataFrame()

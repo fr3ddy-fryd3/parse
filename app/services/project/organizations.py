@@ -1,21 +1,23 @@
-import requests
 import pandas as pd
+import requests
 from app.utils import dataframe
 
 
 @dataframe
-def get_users_by_ids(
-    session: requests.Session, token: str, user_ids: list[str]
+def get_organizations(
+    session: requests.Session,
+    access_token: str,
+    project_id: str,
 ) -> pd.DataFrame:
-    url = "https://exv.portal.alabuga.ru/api/users-service/users/get-users"
+    url = f"https://exv.portal.alabuga.ru/api/project-service/organizations/members/{project_id}"
     headers = {
         "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:134.0) Gecko/20100101 Firefox/134.0",
         "Accept": "application/json, text/plain, */*",
         "Content-Type": "application/json;charset=UTF-8",
-        "Authorization": f"Bearer {token}",
+        "Authorization": f"Bearer {access_token}",
     }
 
-    response = session.post(url, headers=headers, json=user_ids)
+    response = session.get(url, headers=headers)
 
     if response.status_code == 200:
         return response.json()

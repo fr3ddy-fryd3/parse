@@ -1,6 +1,6 @@
 import pandas
 import requests
-from app.utils.to_data_frame import dataframe
+from app.utils import dataframe
 
 
 @dataframe
