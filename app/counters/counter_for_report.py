@@ -1,4 +1,3 @@
-from numpy import short
 import pandas as pd
 import requests
 from app.utils import count_by_organizations, count_by_user_id
@@ -37,6 +36,23 @@ def _get_organizations_table(
     return organizations.set_index("organizationId")["organization"].to_dict()
 
 
+def _add_sum_row(df: pd.DataFrame, count: int):
+    df_count = pd.DataFrame({"author": ["Итого"], "count": count})
+    return pd.concat([df, df_count], axis="rows")
+
+
+def _prepare_count_table(df: pd.DataFrame, index: list[str], column_name: str):
+    df = (
+        df.set_index("author")
+        .reindex(index)
+        .fillna(0)
+        .rename_axis("Организация")
+        .rename(columns={"count": column_name})
+    )
+    df[column_name] = df[column_name].astype(int)
+    return df
+
+
 def get_documentation_report_breakdown_by_subcontractors(
     session: requests.Session, access_token: str, project_id: str
 ):
@@ -51,6 +67,18 @@ def get_documentation_report_breakdown_by_subcontractors(
     project_remarks = get_project_remarks(session, access_token, project_id)
 
     organizations_table = _get_organizations_table(session, access_token, project_id)
+    organizations_list = list(organizations_table.values())
+    organizations_list.append("Итого")
+
+    table_header = [
+        "Реестр ИД",
+        "Раздел 3 ОЖР",
+        "Исп. схемы",
+        "Перечень работ",
+        "Материалы",
+        "Замечания",
+        "Инспекции",
+    ]
 
     ### поулчение итоговой таблицы по ИТД
 
@@ -58,7 +86,7 @@ def get_documentation_report_breakdown_by_subcontractors(
     result = count_by_organizations(itds, "author")
     itds_count = result["general_count"]
     itds_count_by_organizations = result["organizations_count"]
-    print(itds_count_by_organizations, "itds")
+    itds_count_by_organizations = _add_sum_row(itds_count_by_organizations, itds_count)
 
     ### получение итоговой таблицы по ОЖР
 
@@ -68,7 +96,9 @@ def get_documentation_report_breakdown_by_subcontractors(
     journal_count_by_organizations = _translate_id_to_name(
         journal_count_by_organizations, organizations_table
     )
-    print(journal_count_by_organizations, "journal")
+    journal_count_by_organizations = _add_sum_row(
+        journal_count_by_organizations, journal_count
+    )
 
     ### получение итоговой таблицы по исполнительным схемам
 
@@ -78,17 +108,22 @@ def get_documentation_report_breakdown_by_subcontractors(
     result = count_by_organizations(executive_schemas, "author")
     executive_schemas_count = result["general_count"]
     executive_schemas_count_by_organizations = result["organizations_count"]
-    print(executive_schemas_count_by_organizations, "executive_schemas")
+    executive_schemas_count_by_organizations = _add_sum_row(
+        executive_schemas_count_by_organizations, executive_schemas_count
+    )
 
     ### получение итоговой таблицы по перечню работ
 
     result = count_by_user_id(session, access_token, project_tasks, "userId")
-    project_tasks_count = result["general_count"]
     project_tasks_count_by_organizations = result["organizations_count"]
     project_tasks_count_by_organizations = _translate_id_to_name(
         project_tasks_count_by_organizations, organizations_table
     )
-    print(project_tasks_count_by_organizations, "project_tasks")
+    project_tasks_count = result["general_count"]
+    project_tasks_count_by_organizations = result["organizations_count"]
+    project_tasks_count_by_organizations = _add_sum_row(
+        project_tasks_count_by_organizations, project_tasks_count
+    )
 
     ### получение итоговой таблицы по материалам
 
@@ -98,7 +133,9 @@ def get_documentation_report_breakdown_by_subcontractors(
     materials_count_by_organizations = _translate_id_to_name(
         materials_count_by_organizations, organizations_table
     )
-    print(materials_count_by_organizations, "materials")
+    materials_count_by_organizations = _add_sum_row(
+        materials_count_by_organizations, materials_count
+    )
 
     ### получение итоговой таблицы по инспекциям
 
@@ -108,7 +145,9 @@ def get_documentation_report_breakdown_by_subcontractors(
     result = count_by_organizations(project_inspections, "author")
     project_inspections_count = result["general_count"]
     project_inspections_count_by_organizations = result["organizations_count"]
-    print(project_inspections_count_by_organizations, "project_inspections")
+    project_inspections_count_by_organizations = _add_sum_row(
+        project_inspections_count_by_organizations, project_inspections_count
+    )
 
     ### получение итоговой таблицы по замечаниям
 
@@ -118,5 +157,29 @@ def get_documentation_report_breakdown_by_subcontractors(
     result = count_by_organizations(project_remarks, "author")
     project_remarks_count = result["general_count"]
     projects_remarks_count_by_organizations = result["organizations_count"]
-    print(projects_remarks_count_by_organizations, "project_remarks")
-    print(_get_organizations_table(session, access_token, project_id))
+    projects_remarks_count_by_organizations = _add_sum_row(
+        projects_remarks_count_by_organizations, project_remarks_count
+    )
+
+    tables = [
+        itds_count_by_organizations,
+        journal_count_by_organizations,
+        executive_schemas_count_by_organizations,
+        project_tasks_count_by_organizations,
+        materials_count_by_organizations,
+        projects_remarks_count_by_organizations,
+        project_inspections_count_by_organizations,
+    ]
+
+    for df, column_name in zip(tables, table_header):
+        df = _prepare_count_table(df, organizations_list, column_name)
+
+    tables = [
+        _prepare_count_table(df, organizations_list, column_name)
+        for df, column_name in zip(tables, table_header)
+    ]
+
+    result = pd.concat(tables, axis="columns")
+
+    result["Итого"] = result.sum(axis=1)
+    return result
